@@ -1,0 +1,28 @@
+.container
+  .panel.panel-default
+    .panel-heading
+      %h4 Upload
+    .panel-body
+      .input-group
+        .input-group-btn
+          %label.btn.btn-default.btn-file
+            Browse
+            %input.form-control{type: "file", style: "display: none;"}
+        %input#filename{type: "text", class: "form-control", placeholder: "Select file..."}
+        .input-group-btn
+          %a#process.btn.btn-primary.ladda-button{data: {style: "expand-right"}}
+            .ladda-label Process
+
+  #results.collapse
+    .row
+      .container
+        Export: 
+        %a#export-csv.btn.btn-info.btn-sm{href: "#"} CSV
+        %a#export-kml.btn.btn-info.btn-sm{href: "#"} KML
+    .row &nbsp;    
+    .row          
+      .container
+        %small
+          %table.table#datatable
+          
+        

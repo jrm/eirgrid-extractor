@@ -1,0 +1,26 @@
+    
+    
+    folder = KML::Folder.new(:name => 'Offer Process Application Information')
+    rows = @rows.values
+    total = rows.size
+    rows[0..10].each_with_index do |row,i|
+      puts "#{i+1} of #{total}"
+      next unless row[:geo][:e] && row[:geo][:n]
+      coordinates = irish_to_last_long(row[:geo])
+      folder.features << KML::Placemark.new(
+        :name => "#{row[:ref]} - #{row[:location]}",
+        :description => row[:contact],
+        #:style_url => "##{row[:status].gsub("\s",'').downcase}",
+        :metadata => {
+          date: row[:date],
+          status: row[:status],
+          contact: row[:contact]
+        }.to_json,
+        :geometry => KML::Point.new(:coordinates => coordinates)
+      )
+    end
+
+    document.objects << folder
+    File.open("output.kml","wb") do |file|
+      file << kml.render
+    end
