@@ -26,6 +26,7 @@ class FileProcessor
     @matched_records = 0
     @geo_referenced_records = 0
     @data_folder = File.expand_path('../../data', __FILE__)
+    @bin_folder = File.expand_path('../../bin', __FILE__)
   end
   
   def process(opts = {})
@@ -106,7 +107,7 @@ class FileProcessor
   private
   
   def parse(opts = {})
-    text = `pdftotext -enc UTF-8 -table #{@path} -`
+    text = `#{@bin_folder}/pdftotext -enc UTF-8 -table #{@path} -`
     current_ref = nil
     index = 0
     text.split("\n").each do |line|      
