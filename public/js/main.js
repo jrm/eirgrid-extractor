@@ -54,12 +54,12 @@ $(function() {
           $('#export-kml').attr('href', "/download/" + data.process_id + ".kml")
           console.log('SUCCESS');
         } else {
-          $('#error-messsge').html(data.error)
+          $('#error-messsge').html(data.error).collapse('show')
           console.log('ERRORS: ' + data.error);
         }
       },
       error: function(jqXHR, textStatus, errorThrown) {
-        $('#error-messsge').html(textStatus)
+        $('#error-messsge').html(textStatus).collapse('show')
         console.log('ERRORS: ' + textStatus);
       }
     });
