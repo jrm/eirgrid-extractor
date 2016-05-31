@@ -22,12 +22,15 @@ class App < Sinatra::Base
     processor = FileProcessor.new(filepath, {name: filename})
     processor.process do |p|
       content_type :json
-      p.json
+      if p.rows.size > 1
+        p.preview.to_json
+      else
+        halt 500, "Unable to extract data from PDF"
+      end
     end
   end
   
   get '/download/:id.?:format?' do
-  #get '/download/*.*' do |id, format|
     send_file File.join(settings.data_folder, "eigrid-#{params[:id]}.#{params[:format]}")    
   end
   

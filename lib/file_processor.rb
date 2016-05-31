@@ -42,8 +42,8 @@ class FileProcessor
     yield self if block_given?    
   end
   
-  def json
-    {process_id: @process_id, rows: @rows.values}.to_json
+  def preview
+    {process_id: @process_id, rows: @rows.values}
   end  
   
   def kml
