@@ -50,17 +50,17 @@ $(function() {
       success: function(data, textStatus, jqXHR) {
         if(typeof data.error === 'undefined') {
           preview(data)
-          $('#export-csv').attr('href', "/download/" + data.process_id + ".csv")
-          $('#export-kml').attr('href', "/download/" + data.process_id + ".kml")
-          $('#success-messsge').html(data.rows.length + ' rows extracted').collapse('show')
+          $('#export-csv').attr('href', "/download/" + data.process_id + ".csv");
+          $('#export-kml').attr('href', "/download/" + data.process_id + ".kml");
+          $('#success-messsge').html(data.rows.length + ' rows extracted').collapse('show');
           console.log('SUCCESS - ' + data.rows.length + ' rows extracted');
         } else {
-          $('#error-messsge').html(data.error).collapse('show')
+          $('#error-messsge').html(data.error).collapse('show');
           console.log('ERRORS: ' + data.error);
         }
       },
       error: function(jqXHR, textStatus, errorThrown) {
-        $('#error-messsge').html(textStatus).collapse('show')
+        $('#error-messsge').html(textStatus).collapse('show');
         console.log('ERRORS: ' + textStatus);
       }
     });
