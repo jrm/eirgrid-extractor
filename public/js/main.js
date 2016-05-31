@@ -57,11 +57,13 @@ $(function() {
         } else {
           $('#error-messsge').html(data.error).collapse('show');
           console.log('ERRORS: ' + data.error);
+          spinner.ladda( 'stop' );
         }
       },
       error: function(jqXHR, textStatus, errorThrown) {
         $('#error-messsge').html(textStatus).collapse('show');
         console.log('ERRORS: ' + textStatus);
+        spinner.ladda( 'stop' );
       }
     });
   }
