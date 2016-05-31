@@ -52,7 +52,8 @@ $(function() {
           preview(data)
           $('#export-csv').attr('href', "/download/" + data.process_id + ".csv")
           $('#export-kml').attr('href', "/download/" + data.process_id + ".kml")
-          console.log('SUCCESS');
+          $('#success-messsge').html(data.rows.length + ' rows extracted').collapse('show')
+          console.log('SUCCESS - ' + data.rows.length + ' rows extracted');
         } else {
           $('#error-messsge').html(data.error).collapse('show')
           console.log('ERRORS: ' + data.error);
