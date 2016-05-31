@@ -11,7 +11,7 @@ class FileProcessor
   DATE = /(?<date>\d\d\/\d\d\/\d\d\d\d)/
   STATUS = /(?<status>On\s+Hold|Processing|Live)/
   LOCATION = /(?<location>.*?)/
-  SIZE = /(?<size>.*?)/
+  SIZE = /(?<size>[0-9]+(?:.[0-9]+)?)/
   PAGE_REGEX = /Page/
   LINE_REGEX = /\A#{REF}#{SEP}#{CONTACT}#{SEP}#{DATE}#{SEP}#{STATUS}#{SEP}#{LOCATION}#{SEP}#{SIZE}\Z/
   GEO_REGEX = /(?<geo>(?:N|E)\d+(?:,)?(?:N|E)\d+)/
