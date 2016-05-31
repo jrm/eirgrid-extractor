@@ -4,6 +4,8 @@ require 'csv'
 
 class FileProcessor
   
+  Encoding.default_external = Encoding.list[1]
+  
   SEP = /\s+/
   REF = /(?<ref>(?:T|D)G\d+(?:[a-z])?)/
   PROJECT = /(?<project>.*?(\s+\(\d\)?))/
@@ -62,12 +64,12 @@ class FileProcessor
     rows.each_with_index do |row,i|
       status = row[:status] ? row[:status].gsub("\s",'') : 'NoStatus'
       style = status.downcase
-      unless folders[status]
-        folder.features << folders[status] = KML::Folder.new(:name => status)
+      unless folders[row[:company]]
+        folder.features << folders[row[:company]] = KML::Folder.new(:name => row[:company])
       end
-      folders[status].features << KML::Placemark.new(
+      folders[row[:company]].features << KML::Placemark.new(
         :name => "#{row[:ref]} - #{row[:project]} - #{row[:size]}",
-        :description => row[:contact],
+        :description => "#{row[:base_contact]}",
         :geometry    => KML::Point.new(:coordinates => {lat: row[:geo][:lat], lng: row[:geo][:lng]}),
         :style_url   => "##{style}-style"
       )
