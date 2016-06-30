@@ -15,8 +15,13 @@ class FileProcessor
   LOCATION = /(?<location>.*?)/
   SIZE = /(?<size>[0-9]+(?:.[0-9]+)?)/
   PAGE_REGEX = /Page/
-  LINE_REGEX = /\A#{REF}#{SEP}#{CONTACT}#{SEP}#{DATE}#{SEP}#{STATUS}#{SEP}#{LOCATION}#{SEP}#{SIZE}\Z/
-  GEO_REGEX = /(?<geo>(?:N|E)\d+(?:,)?(?:N|E)\d+)/
+  LINE_REGEX1 = /\A#{REF}#{SEP}#{CONTACT}#{SEP}#{DATE}#{SEP}#{STATUS}#{SEP}#{LOCATION}#{SEP}#{SIZE}\Z/
+  GEO_REGEX = /(?<geo>(?:N|E)\d+(?:,)?(?:N|E)\d+)/  
+  
+  #revised file format
+  GEO_REGEX2 = /(?<geo_e>E\d+),\s(?<geo_n>N\d+)/  
+  LINE_REGEX2 = /\A#{REF}#{SEP}#{CONTACT}#{SEP}#{DATE}#{SEP}#{STATUS}#{SEP}#{LOCATION}#{SEP}#{GEO_REGEX2}#{SEP}#{SIZE}\Z/
+  
   
   attr_reader :rows
   
@@ -115,7 +120,38 @@ class FileProcessor
     text.split("\n").each do |line|      
       line.strip!
       next if line.size == 0 || line =~ PAGE_REGEX
-      if md1 = line.match(LINE_REGEX)
+      if md1 = line.match(LINE_REGEX2)
+        
+        index += 1
+        current_ref = md1[:ref]
+        @matched_records += 1
+        if md_p = md1[:contact].match(/\A(.*?)\s{2,}?(.*?),(.*)\Z/)
+          project = md_p[1].strip
+          company = md_p[2].strip
+          contact = md_p[3].strip
+        end
+        @rows[current_ref] = {
+          ref: current_ref,
+          index: index,
+          project: project, 
+          company: company, 
+          contact: contact, 
+          base_contact: md1[:contact], 
+          date: md1[:date],
+          status: md1[:status],
+          location: md1[:location],
+          size: md1[:size],
+          rem:"", 
+          geo: {n: md1[:geo_n], e: md1[:geo_e], lat: 0, lng: 0}
+        }
+        if latlng = irish_to_last_long(rows[current_ref][:geo])
+          @rows[current_ref][:geo].merge!(latlng)
+        end
+        
+        next
+        
+      elsif md1 = line.match(LINE_REGEX1)
+        
         index += 1
         current_ref = md1[:ref]
         @matched_records += 1
@@ -138,6 +174,7 @@ class FileProcessor
           rem:"", 
           geo: {n: "0", e: "0", lat: 0, lng: 0}
         }
+        
       else
         @rows[current_ref] && @rows[current_ref][:rem] << line.strip.gsub("\s","")
         if @rows[current_ref] 
