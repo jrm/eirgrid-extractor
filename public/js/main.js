@@ -25,7 +25,10 @@ $(function() {
           { data: 'status', title: "Status" },          
           { data: 'location', title: "Location" },
           { data: 'geo.lat', title: "Lat" },
-          { data: 'geo.lng', title: "Lng" }
+          { data: 'geo.lng', title: "Lng" },
+          { data: 'geo.e', title: "E" },
+          { data: 'geo.n', title: "N" }
+          
         ],
         order: [[ 0, "asc" ]]
     });

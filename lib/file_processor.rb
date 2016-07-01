@@ -19,7 +19,9 @@ class FileProcessor
   GEO_REGEX = /(?<geo>(?:N|E)\d+(?:,)?(?:N|E)\d+)/  
   
   #revised file format
-  GEO_REGEX2 = /(?<geo_e>E\d+),\s(?<geo_n>N\d+)/  
+  LOC_SEP = /\s*/
+  
+  GEO_REGEX2 = /(?<geo_1>(?:N|E)\d+)\s*,\s*(?<geo_2>(?:N|E)\d+)/  
   LINE_REGEX2 = /\A#{REF}#{SEP}#{CONTACT}#{SEP}#{DATE}#{SEP}#{STATUS}#{SEP}#{LOCATION}#{SEP}#{GEO_REGEX2}#{SEP}#{SIZE}\Z/
   
   
@@ -142,12 +144,23 @@ class FileProcessor
           location: md1[:location],
           size: md1[:size],
           rem:"", 
-          geo: {n: md1[:geo_n], e: md1[:geo_e], lat: 0, lng: 0}
+          geo: {n: "", e: "", lat: 0, lng: 0}
         }
+        
+        if md1[:geo_1] && md1[:geo_1] =~ /N/
+          @rows[current_ref][:geo][:n] = md1[:geo_1]
+        elsif md1[:geo_1] && md1[:geo_1] =~ /E/ 
+          @rows[current_ref][:geo][:e] = md1[:geo_1]
+        end
+        if md1[:geo_2] && md1[:geo_2] =~ /N/
+          @rows[current_ref][:geo][:n] = md1[:geo_2]
+        elsif md1[:geo_2] && md1[:geo_2] =~ /E/ 
+          @rows[current_ref][:geo][:e] = md1[:geo_2]
+        end
+        
         if latlng = irish_to_last_long(rows[current_ref][:geo])
           @rows[current_ref][:geo].merge!(latlng)
         end
-        
         next
         
       elsif md1 = line.match(LINE_REGEX1)
