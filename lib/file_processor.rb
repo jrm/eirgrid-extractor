@@ -82,7 +82,7 @@ class FileProcessor
         folder.features << folders[row[:company]] = KML::Folder.new(:name => row[:company])
       end
       folders[row[:company]].features << KML::Placemark.new(
-        :name => "#{row[:ref]} - #{row[:project]} - #{row[:size]}",
+        :name => "#{row[:ref]} - #{row[:project]} - #{row[:size]} - #{row[:type]}",
         :description => "#{row[:base_contact]}",
         :geometry    => KML::Point.new(:coordinates => {lat: row[:geo][:lat], lng: row[:geo][:lng]}),
         :style_url   => "##{style}-style"
