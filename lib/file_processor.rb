@@ -95,7 +95,7 @@ class FileProcessor
 
   def csv
     rows = @rows.values
-    #headers = ["Ref","Project","Company","Contact","Project/Company/Contact","Date","Status","Location","Size","N","E","Lat","Lng"]
+    headers = ["Ref","Project","Company","Contact","Project/Company/Contact","Date","Status","Location","Size","N","E","Lat","Lng"]
     csv_data  = CSV.generate do |csv|
       csv << headers
       rows.each do |row|
@@ -114,6 +114,8 @@ class FileProcessor
           row[:geo][:e],
           row[:geo][:lat],
           row[:geo][:lng],
+          row[:node],
+          row[:type]
         ]
       end
     end
@@ -130,7 +132,6 @@ class FileProcessor
       line.strip!
       next if line.size == 0 || line =~ PAGE_REGEX
       if md1 = line.match(LINE_REGEX2)
-        @headers = ["Ref","Project","Company","Contact","Project/Company/Contact","Date","Status","Location","Size","N","E","Lat","Lng"]
         index += 1
         current_ref = md1[:ref]
         @matched_records += 1
@@ -171,7 +172,6 @@ class FileProcessor
         next
 
       elsif md1 = line.match(LINE_REGEX1)
-        @headers = ["Ref","Project","Company","Contact","Project/Company/Contact","Date","Status","Location","Size","N","E","Lat","Lng"]
         index += 1
         current_ref = md1[:ref]
         @matched_records += 1
@@ -196,7 +196,6 @@ class FileProcessor
         }
 
       elsif md1 = line.match(LINE_REGEX3)
-        @headers = ["Ref","Project","Company","Contact","Project/Company/Contact","Date","Status","Location","Size","N","E","Lat","Lng","100kvNode","GenerationType"]
         index += 1
         current_ref = md1[:ref]
         @matched_records += 1
@@ -217,7 +216,7 @@ class FileProcessor
           location: md1[:location],
           size: md1[:size],
           node: md1[:node],
-          node: md1[:type]
+          type: md1[:type],
           rem:"",
           geo: {n: "0", e: "0", lat: 0, lng: 0}
         }
