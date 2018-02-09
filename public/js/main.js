@@ -7,10 +7,10 @@ $(document).on('change', ':file', function() {
 
 
 $(function() {
-  
+
   var files, table;
   var spinner = $( '#process' ).ladda();
-  
+
   var preview = function(data) {
     table = $('#datatable').DataTable( {
         destroy: true,
@@ -18,24 +18,25 @@ $(function() {
         columns: [
           { data: 'index', title: "Index" },
           { data: 'ref', title: "Reference" },
-          { data: 'size', title: "Size" },                    
+          { data: 'size', title: "Size" },
           { data: 'project', title: "Project" },
           { data: 'company', title: "Company" },
           { data: 'contact', title: "Contact" },
-          { data: 'status', title: "Status" },          
+          { data: 'status', title: "Status" },
           { data: 'location', title: "Location" },
           { data: 'geo.lat', title: "Lat" },
           { data: 'geo.lng', title: "Lng" },
           { data: 'geo.e', title: "E" },
-          { data: 'geo.n', title: "N" }
-          
+          { data: 'geo.n', title: "N" },
+          { data: 'node', title: "100KvNode" },
+          { data: 'type', title: "GenerationType" }
         ],
         order: [[ 0, "asc" ]]
     });
     $('#results').collapse('show');
     spinner.ladda( 'stop' );
   }
-  
+
   var process = function() {
     spinner.ladda('start')
     var data = new FormData();
@@ -70,14 +71,14 @@ $(function() {
       }
     });
   }
-  
-  
+
+
   $('#process').on('click', process)
-  
+
   $(':file').on('fileselect', function(event, numFiles, label) {
     files = event.target.files;
     $('#filename').val(label)
   });
-  
-  
+
+
 });

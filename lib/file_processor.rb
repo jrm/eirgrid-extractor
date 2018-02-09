@@ -95,7 +95,7 @@ class FileProcessor
 
   def csv
     rows = @rows.values
-    headers = ["Ref","Project","Company","Contact","Project/Company/Contact","Date","Status","Location","Size","N","E","Lat","Lng"]
+    headers = ["Ref","Project","Company","Contact","Project/Company/Contact","Date","Status","Location","Size","N","E","Lat","Lng","100kVNode","GenerationType"]
     csv_data  = CSV.generate do |csv|
       csv << headers
       rows.each do |row|
