@@ -7,4 +7,5 @@ LoadPath.configure do
 end
 
 require 'app'
+
 run App

@@ -13,7 +13,12 @@ require 'file_processor'
 
 
 
-processor = FileProcessor.new('input.pdf')
+processor = FileProcessor.new('./data/input.pdf')
 
-
-processor.to_csv
+processor.process do |p|
+  if p.rows.size > 1
+    p.preview.to_json
+  else
+    puts "Unable to extract data from PDF"
+  end
+end

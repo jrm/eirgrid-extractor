@@ -3,9 +3,9 @@ require 'csv'
 
 
 class FileProcessor
-  
+
   Encoding.default_external = Encoding.list[1]
-  
+
   SEP = /\s+/
   REF = /(?<ref>(?:T|D)G\d+(?:[a-z])?)/
   PROJECT = /(?<project>.*?(\s+\(\d\)?))/
@@ -13,20 +13,27 @@ class FileProcessor
   DATE = /(?<date>\d\d\/\d\d\/\d\d\d\d)/
   STATUS = /(?<status>On\s+Hold|Processing|Live)/
   LOCATION = /(?<location>.*?)/
+  COUNTY = /(?<county>.*?)/
+  TYPE = /(?<type>.*?)/
   SIZE = /(?<size>[0-9]+(?:.[0-9]+)?)/
   PAGE_REGEX = /Page/
   LINE_REGEX1 = /\A#{REF}#{SEP}#{CONTACT}#{SEP}#{DATE}#{SEP}#{STATUS}#{SEP}#{LOCATION}#{SEP}#{SIZE}\Z/
-  GEO_REGEX = /(?<geo>(?:N|E)\d+(?:,)?(?:N|E)\d+)/  
-  
+  GEO_REGEX = /(?<geo>(?:N|E)\d+(?:,)?(?:N|E)\d+)/
+
   #revised file format
   LOC_SEP = /\s*/
-  
-  GEO_REGEX2 = /(?<geo_1>(?:N|E)\d+)\s*,\s*(?<geo_2>(?:N|E)\d+)/  
+
+  GEO_REGEX2 = /(?<geo_1>(?:N|E)\d+)\s*,\s*(?<geo_2>(?:N|E)\d+)/
   LINE_REGEX2 = /\A#{REF}#{SEP}#{CONTACT}#{SEP}#{DATE}#{SEP}#{STATUS}#{SEP}#{LOCATION}#{SEP}#{GEO_REGEX2}#{SEP}#{SIZE}\Z/
-  
-  
+
+
+  #revised file format2
+  LINE_REGEX3 = /\A#{REF}#{SEP}#{CONTACT}#{SEP}#{DATE}#{SEP}#{STATUS}#{SEP}#{LOCATION}#{SEP}#{GEO_REGEX2}#{SEP}#{SIZE}#{SEP}#{COUNTY}#{SEP}#{TYPE}\Z/
+
+
+
   attr_reader :rows
-  
+
   def initialize(path, opts = {})
     @path = path
     @name = opts[:name]
@@ -34,10 +41,10 @@ class FileProcessor
     @rows = {}
     @matched_records = 0
     @geo_referenced_records = 0
-    @data_folder = File.expand_path('../../data', __FILE__)
-    @bin_folder = File.expand_path('../../bin', __FILE__)
+    @data_folder = './data'
+    @bin_folder = './bin'
   end
-  
+
   def process(opts = {})
     parse
     File.open("#{@data_folder}/eigrid-#{@process_id}.csv", "wb") do |file|
@@ -46,13 +53,13 @@ class FileProcessor
     File.open("#{@data_folder}/eigrid-#{@process_id}.kml", "wb") do |file|
       file << kml
     end
-    yield self if block_given?    
+    yield self if block_given?
   end
-  
+
   def preview
     {process_id: @process_id, rows: @rows.values}
-  end  
-  
+  end
+
   def kml
     kml = KMLFile.new
     document = KML::Document.new(:name => @name)
@@ -65,8 +72,8 @@ class FileProcessor
         :icon_style => KML::IconStyle.new(:icon => KML::Icon.new(:href => s[:icon]))
       )
     end
-    folder = KML::Folder.new(:name => "Records")    
-    folders = {}    
+    folder = KML::Folder.new(:name => "Records")
+    folders = {}
     total = rows.size
     rows.each_with_index do |row,i|
       status = row[:status] ? row[:status].gsub("\s",'') : 'NoStatus'
@@ -80,12 +87,12 @@ class FileProcessor
         :geometry    => KML::Point.new(:coordinates => {lat: row[:geo][:lat], lng: row[:geo][:lng]}),
         :style_url   => "##{style}-style"
       )
-    end 
+    end
     document.features << folder
     kml.objects << document
     kml.render
   end
-  
+
   def csv
     rows = @rows.values
     headers = ["Ref","Project","Company","Contact","Project/Company/Contact","Date","Status","Location","Size","N","E","Lat","Lng"]
@@ -110,20 +117,19 @@ class FileProcessor
         ]
       end
     end
-    csv_data   
+    csv_data
   end
-  
+
   private
-  
+
   def parse(opts = {})
     text = `#{@bin_folder}/pdftotext -enc UTF-8 -table #{@path} -`
     current_ref = nil
     index = 0
-    text.split("\n").each do |line|      
+    text.split("\n").each do |line|
       line.strip!
       next if line.size == 0 || line =~ PAGE_REGEX
       if md1 = line.match(LINE_REGEX2)
-        
         index += 1
         current_ref = md1[:ref]
         @matched_records += 1
@@ -135,36 +141,36 @@ class FileProcessor
         @rows[current_ref] = {
           ref: current_ref,
           index: index,
-          project: project, 
-          company: company, 
-          contact: contact, 
-          base_contact: md1[:contact], 
+          project: project,
+          company: company,
+          contact: contact,
+          base_contact: md1[:contact],
           date: md1[:date],
           status: md1[:status],
           location: md1[:location],
           size: md1[:size],
-          rem:"", 
+          rem:"",
           geo: {n: "", e: "", lat: 0, lng: 0}
         }
-        
+
         if md1[:geo_1] && md1[:geo_1] =~ /N/
           @rows[current_ref][:geo][:n] = md1[:geo_1]
-        elsif md1[:geo_1] && md1[:geo_1] =~ /E/ 
+        elsif md1[:geo_1] && md1[:geo_1] =~ /E/
           @rows[current_ref][:geo][:e] = md1[:geo_1]
         end
         if md1[:geo_2] && md1[:geo_2] =~ /N/
           @rows[current_ref][:geo][:n] = md1[:geo_2]
-        elsif md1[:geo_2] && md1[:geo_2] =~ /E/ 
+        elsif md1[:geo_2] && md1[:geo_2] =~ /E/
           @rows[current_ref][:geo][:e] = md1[:geo_2]
         end
-        
+
         if latlng = irish_to_last_long(rows[current_ref][:geo])
           @rows[current_ref][:geo].merge!(latlng)
         end
         next
-        
+
       elsif md1 = line.match(LINE_REGEX1)
-        
+
         index += 1
         current_ref = md1[:ref]
         @matched_records += 1
@@ -176,21 +182,62 @@ class FileProcessor
         @rows[current_ref] = {
           ref: current_ref,
           index: index,
-          project: project, 
-          company: company, 
-          contact: contact, 
-          base_contact: md1[:contact], 
+          project: project,
+          company: company,
+          contact: contact,
+          base_contact: md1[:contact],
           date: md1[:date],
           status: md1[:status],
           location: md1[:location],
           size: md1[:size],
-          rem:"", 
+          rem:"",
           geo: {n: "0", e: "0", lat: 0, lng: 0}
         }
-        
+
+      elsif md1 = line.match(LINE_REGEX3)
+
+        index += 1
+        current_ref = md1[:ref]
+        @matched_records += 1
+        if md_p = md1[:contact].match(/\A(.*?)\s{2,}?(.*?),(.*)\Z/)
+          project = md_p[1].strip
+          company = md_p[2].strip
+          contact = md_p[3].strip
+        end
+        @rows[current_ref] = {
+          ref: current_ref,
+          index: index,
+          project: project,
+          company: company,
+          contact: contact,
+          base_contact: md1[:contact],
+          date: md1[:date],
+          status: md1[:status],
+          location: md1[:location],
+          size: md1[:size],
+          rem:"",
+          geo: {n: "0", e: "0", lat: 0, lng: 0}
+        }
+
+        if md1[:geo_1] && md1[:geo_1] =~ /N/
+          @rows[current_ref][:geo][:n] = md1[:geo_1]
+        elsif md1[:geo_1] && md1[:geo_1] =~ /E/
+          @rows[current_ref][:geo][:e] = md1[:geo_1]
+        end
+        if md1[:geo_2] && md1[:geo_2] =~ /N/
+          @rows[current_ref][:geo][:n] = md1[:geo_2]
+        elsif md1[:geo_2] && md1[:geo_2] =~ /E/
+          @rows[current_ref][:geo][:e] = md1[:geo_2]
+        end
+
+        if latlng = irish_to_last_long(rows[current_ref][:geo])
+          @rows[current_ref][:geo].merge!(latlng)
+        end
+
+
       else
         @rows[current_ref] && @rows[current_ref][:rem] << line.strip.gsub("\s","")
-        if @rows[current_ref] 
+        if @rows[current_ref]
           rem = @rows[current_ref][:rem]
           next if rem.size == 0
           if md_g = @rows[current_ref][:rem].match(GEO_REGEX)
@@ -209,7 +256,7 @@ class FileProcessor
       end
     end
   end
-  
+
   def irish_to_last_long(coord)
     e = coord[:e].gsub("E",'').to_i
     n = coord[:n].gsub("N",'').to_i
@@ -222,6 +269,6 @@ class FileProcessor
       {lat: 0, lng: 0}
     end
   end
-  
-  
+
+
 end
