@@ -29,10 +29,9 @@ class App < Sinatra::Base
       json_file = Tempfile.new('hoogspan_json')
       kml_file = Tempfile.new('hoogspan_kml')
       File.open(json_file.path,'wb') {|f| f << response.to_s}
-      #{}%x(/Users/james/node_modules/tokml/tokml #{json_file.path} > #{kml_file.path})
-      #%x(/Users/james/node_modules/tokml/tokml #{json_file.path})
-      %x(ogr2ogr -f KML #{kml_file.path} #{json_file.path})
-      File.read(kml_file.path)
+      #{}%x(ogr2ogr -f KML #{kml_file.path} #{json_file.path})
+      #File.read(kml_file.path)
+      %x(/usr/bin/tokml #{json_file.path})
     else
       halt 404
     end
