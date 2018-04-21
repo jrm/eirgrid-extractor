@@ -25,15 +25,14 @@ class App < Sinatra::Base
       zoom: params[:zoom] || 10
     }
     base_url = 'https://webkaart.hoogspanningsnet.com/layerdata.php'
+    halt 400 unless query[:bbox]
     if (response = HTTParty.get(base_url, query: query)) && response.success?
       json_file = Tempfile.new('hoogspan_json')
       kml_file = Tempfile.new('hoogspan_kml')
       File.open(json_file.path,'wb') {|f| f << response.to_s}
-      #{}%x(ogr2ogr -f KML #{kml_file.path} #{json_file.path})
-      #File.read(kml_file.path)
-      %x(/usr/bin/tokml #{json_file.path})
+      %x(/usr/local/bin/tokml #{json_file.path})
     else
-      halt 404
+      halt 400
     end
   end
 
