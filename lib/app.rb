@@ -22,7 +22,7 @@ class App < Sinatra::Base
     query = {
       type: params[:type],
       bbox: params[:BBOX],
-      zoom: 11
+      zoom: params[:zoom] || 10
     }
     base_url = 'https://webkaart.hoogspanningsnet.com/layerdata.php'
     if (response = HTTParty.get(base_url, query: query)) && response.success?

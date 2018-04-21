@@ -2,6 +2,8 @@ require 'json'
 require 'csv'
 
 
+require 'pp'
+
 class FileProcessor
 
   Encoding.default_external = Encoding.list[1]
@@ -58,6 +60,50 @@ class FileProcessor
 
   def preview
     {process_id: @process_id, rows: @rows.values}
+  end
+
+  def kml__
+    rows = @rows.values
+    style_defs = [{id: 'live', color: '#0f0', icon: 'ball.png'},
+                  {id: 'processing', color: '#0ff', icon: 'ball.png'},
+                  {id: 'onhold', color: '#ff0', icon: 'ball.png'} ]
+    folders = Hash.new{|hash,key| hash[key] = Hash.new{|h,k| h[k] = []}}
+    rows.each_with_index do |row,i|
+      status = row[:status] ? row[:status].gsub("\s",'') : 'NoStatus'
+      type = row[:type] || "NoType"
+      company = row[:company] || "NoCompany"
+      style = status.downcase
+      mark = KML::Placemark.new(
+        name: "#{row[:ref]} - #{row[:project]} - #{row[:size]}",
+        description: "#{row[:base_contact]}",
+        geometry: KML::Point.new(:coordinates => {lat: row[:geo][:lat], lng: row[:geo][:lng]}),
+        style_url: "##{style}-style"
+      )
+      folders[type][company] << mark
+    end
+    kml_file = KMLFile.new
+    document = KML::Document.new(
+      name: @name,
+      styles: style_defs.map {|s|
+        KML::Style.new(
+          id: "#{s[:style]}-style",
+          icon_style: KML::IconStyle.new(:icon => KML::Icon.new(:href => s[:icon]))
+        )
+      },
+      features: folders.map {|t,companies|
+        KML::Folder.new(
+          name: t,
+          features: companies.map {|c,marks|
+            KML::Folder.new(
+              name: c,
+              features: marks
+            )
+          }
+        )
+      }
+    )
+    kml_file.objects << document
+    kml_file.render
   end
 
   def kml
@@ -256,6 +302,7 @@ class FileProcessor
           end
         end
       end
+      puts @rows[current_ref]
     end
   end
 
